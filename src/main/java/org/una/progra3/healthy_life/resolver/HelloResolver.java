@@ -1,4 +1,4 @@
-package org.una.progra3.healthy_life;
+package org.una.progra3.healthy_life.resolver;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 

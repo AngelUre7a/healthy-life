@@ -1,3 +1,19 @@
-type Query{
+type Query {
     hello: String
+    allUsers: [User!]!
+    userById(id: ID!): User
+    userByEmail(email: String!): User
+}
+
+type Mutation {
+    createUser(name: String!, email: String!, password: String!): User!
+    updateUser(id: ID!, name: String, email: String, password: String): User!
+    deleteUser(id: ID!): Boolean!
+}
+
+type User {
+    id: ID!
+    name: String!
+    email: String!
+    password: String!
 }
