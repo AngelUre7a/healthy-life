@@ -25,6 +25,15 @@ public class UserService {
         return userRepository.findByEmail(email).orElse(null);
     }
 
+    public User login(String email, String password) {
+        
+        User user = findByEmail(email);
+        if (user != null && user.getPassword().equals(password)) {
+            return user;
+        }
+        return null;
+    }
+
     public User save(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email already exists");

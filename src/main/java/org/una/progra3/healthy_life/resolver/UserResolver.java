@@ -31,6 +31,11 @@ public class UserResolver {
         return userService.findByEmail(email);
     }
 
+    @QueryMapping
+    public User login(@Argument String email, @Argument String password) {
+        return userService.login(email, password);
+    }
+
     @MutationMapping
     public User createUser(@Argument String name, @Argument String email, 
                           @Argument String password) {
