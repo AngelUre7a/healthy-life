@@ -2,12 +2,14 @@ package org.una.progra3.healthy_life.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.una.progra3.healthy_life.entity.User;
 import org.una.progra3.healthy_life.repository.UserRepository;
 
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class UserService {
 
     @Autowired
@@ -26,39 +28,43 @@ public class UserService {
     }
 
     public User login(String email, String password) {
-        
-        User user = findByEmail(email);
-        if (user != null && user.getPassword().equals(password)) {
-            return user;
-        }
-        return null;
+        return userRepository.findByEmailAndPassword(email, password).orElse(null);
     }
 
+    @Transactional
     public User save(User user) {
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+        if (user.getName() == null || user.getName().isBlank()) {
+            throw new IllegalArgumentException("Name is required");
+        }
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
         return userRepository.save(user);
     }
 
+    @Transactional
     public User update(Long id, String name, String email, String password) {
-        User user = findById(id);
-        if (user == null) {
+        User existing = findById(id);
+        if (existing == null) {
             throw new RuntimeException("User not found");
         }
-        
-        if (name != null) user.setName(name);
-        if (email != null && !email.equals(user.getEmail())) {
+
+        if (name != null) existing.setName(name);
+        if (email != null && !email.equals(existing.getEmail())) {
             if (userRepository.existsByEmail(email)) {
                 throw new RuntimeException("Email already exists");
             }
-            user.setEmail(email);
+            existing.setEmail(email);
         }
-        if (password != null) user.setPassword(password);
-        
-        return userRepository.save(user);
+        if (password != null) existing.setPassword(password);
+
+        return userRepository.save(existing);
     }
 
+    @Transactional
     public Boolean deleteById(Long id) {
         if (userRepository.existsById(id)) {
             userRepository.deleteById(id);
