@@ -20,24 +20,24 @@ public class UserResolver {
     private UserService userService;
 
     private UserDTO toDTO(User user) {
-        if (user == null) return null;
-        UserDTO dto = new UserDTO();
-        if (user.getId() != null) dto.setId(java.math.BigDecimal.valueOf(user.getId()));
-        dto.setName(user.getName());
-        dto.setEmail(user.getEmail());
-        dto.setRoleId(user.getRole() != null ? user.getRole().getId() : null);
-        Set<Long> favIds = user.getFavoriteHabits() == null ? Set.of() :
-                user.getFavoriteHabits().stream().map(Habit::getId).collect(Collectors.toSet());
-        dto.setFavoriteHabitIds(favIds);
-        dto.setRoutineIds(user.getRoutines() == null ? List.of() :
-                user.getRoutines().stream().map(Routine::getId).collect(Collectors.toList()));
-        dto.setProgressLogIds(user.getProgressLogs() == null ? List.of() :
-                user.getProgressLogs().stream().map(ProgressLog::getId).collect(Collectors.toList()));
-        dto.setReminderIds(user.getReminders() == null ? List.of() :
-                user.getReminders().stream().map(Reminder::getId).collect(Collectors.toList()));
-        dto.setAuthTokenIds(user.getAuthTokens() == null ? List.of() :
-                user.getAuthTokens().stream().map(AuthToken::getId).collect(Collectors.toList()));
-        return dto;
+    if (user == null) return null;
+    UserDTO dto = new UserDTO();
+    if (user.getId() != null) dto.setId(user.getId());
+    dto.setName(user.getName());
+    dto.setEmail(user.getEmail());
+    dto.setRoleId(user.getRole() != null ? user.getRole().getId() : null);
+    Set<Long> favIds = user.getFavoriteHabits() == null ? Set.of() :
+        user.getFavoriteHabits().stream().map(Habit::getId).collect(Collectors.toSet());
+    dto.setFavoriteHabitIds(favIds);
+    dto.setRoutineIds(user.getRoutines() == null ? List.of() :
+        user.getRoutines().stream().map(Routine::getId).collect(Collectors.toList()));
+    dto.setProgressLogIds(user.getProgressLogs() == null ? List.of() :
+        user.getProgressLogs().stream().map(ProgressLog::getId).collect(Collectors.toList()));
+    dto.setReminderIds(user.getReminders() == null ? List.of() :
+        user.getReminders().stream().map(Reminder::getId).collect(Collectors.toList()));
+    dto.setAuthTokenIds(user.getAuthTokens() == null ? List.of() :
+        user.getAuthTokens().stream().map(AuthToken::getId).collect(Collectors.toList()));
+    return dto;
     }
 
     @QueryMapping
