@@ -1,5 +1,4 @@
 type Query {
-    hello: String
     allUsers: [User!]!
     userById(id: ID!): User
     userByEmail(email: String!): User
@@ -16,5 +15,10 @@ type User {
     id: ID!
     name: String!
     email: String!
-    password: String!
+    roleId: ID
+    favoriteHabitIds: [ID!]!
+    routineIds: [ID!]!
+    progressLogIds: [ID!]!
+    reminderIds: [ID!]!
+    authTokenIds: [ID!]!
 }
