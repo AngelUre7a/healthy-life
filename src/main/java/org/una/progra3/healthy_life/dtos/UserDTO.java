@@ -1,12 +1,11 @@
 
 package org.una.progra3.healthy_life.dtos;
 
-import java.math.BigDecimal;
 import java.util.Set;
 import java.util.List;
 
 public class UserDTO {
-    private BigDecimal id;
+    private Long id;
     private String name;
     private String email;
     private Long roleId;
@@ -18,10 +17,10 @@ public class UserDTO {
 
     public UserDTO() {}
 
-    public BigDecimal getId() {
+    public Long getId() {
         return id;
     }
-    public void setId(BigDecimal id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
