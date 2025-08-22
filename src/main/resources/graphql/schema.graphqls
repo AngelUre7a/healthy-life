@@ -2,13 +2,20 @@ type Query {
     allUsers: [User!]!
     userById(id: ID!): User
     userByEmail(email: String!): User
-    login(email: String!, password: String!): User
+}
+
+type LoginResponse {
+    token: String!
+    email: String!
+    name: String!
+    role: String
 }
 
 type Mutation {
     createUser(name: String!, email: String!, password: String!): User!
     updateUser(id: ID!, name: String, email: String, password: String): User!
     deleteUser(id: ID!): Boolean!
+    login(email: String!, password: String!): LoginResponse!
 }
 
 type User {

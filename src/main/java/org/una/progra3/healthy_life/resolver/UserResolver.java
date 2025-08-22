@@ -55,10 +55,6 @@ public class UserResolver {
         return toDTO(userService.findByEmail(email));
     }
 
-    @QueryMapping
-    public UserDTO login(@Argument String email, @Argument String password) {
-        return toDTO(userService.login(email, password));
-    }
 
     @MutationMapping
     public UserDTO createUser(@Argument String name, @Argument String email,

@@ -28,7 +28,16 @@ public class UserService {
     }
 
     public User login(String email, String password) {
-        return userRepository.findByEmailAndPassword(email, password).orElse(null);
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            System.out.println("[LOGIN] Usuario no encontrado para email: " + email);
+            return null;
+        }
+        if (!user.getPassword().equals(password)) {
+            System.out.println("[LOGIN] Contraseña incorrecta para email: " + email);
+            return null;
+        }
+        return user;
     }
 
     @Transactional
