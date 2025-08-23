@@ -16,6 +16,7 @@ public class RoutineActivityDTO {
 	public Long getId() {
 		return id;
 	}
+
 	public void setId(Long id) {
 		this.id = id;
 	}
@@ -23,6 +24,7 @@ public class RoutineActivityDTO {
 	public Long getRoutineId() {
 		return routineId;
 	}
+
 	public void setRoutineId(Long routineId) {
 		this.routineId = routineId;
 	}
@@ -30,6 +32,7 @@ public class RoutineActivityDTO {
 	public Long getHabitId() {
 		return habitId;
 	}
+
 	public void setHabitId(Long habitId) {
 		this.habitId = habitId;
 	}
@@ -37,6 +40,7 @@ public class RoutineActivityDTO {
 	public Integer getDuration() {
 		return duration;
 	}
+
 	public void setDuration(Integer duration) {
 		this.duration = duration;
 	}
@@ -44,6 +48,7 @@ public class RoutineActivityDTO {
 	public LocalTime getTargetTime() {
 		return targetTime;
 	}
+
 	public void setTargetTime(LocalTime targetTime) {
 		this.targetTime = targetTime;
 	}
@@ -51,6 +56,7 @@ public class RoutineActivityDTO {
 	public String getNotes() {
 		return notes;
 	}
+	
 	public void setNotes(String notes) {
 		this.notes = notes;
 	}
