@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.una.progra3.healthy_life.entity.enums.HabitCategory;
 import org.una.progra3.healthy_life.entity.enums.ReminderFrequency;
+import javax.servlet.http.HttpServletRequest;
 
 import java.util.Date;
 import java.util.Optional;
@@ -27,33 +28,67 @@ public class JwtTokenProvider {
         return secretKeyString;
     }
 
+
     @Value("${jwt.expiration.access}")
     private long accessTokenValidity;
 
-    //Genera un token con claims personalizados para enums
-    public String generateToken(String username, HabitCategory habitCategory, ReminderFrequency reminderFrequency) {
+    @Value("${jwt.expiration.refresh}")
+    private long refreshTokenValidity;
+
+
+
+    // Genera un token flexible con claims de usuario y claims opcionales
+    public String generateToken(String username, String email, Long userId, String role, boolean isRefreshToken) {
+        long validityDuration = isRefreshToken ? refreshTokenValidity : accessTokenValidity;
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + accessTokenValidity);
-
-    return Jwts.builder()
-        .setSubject(username)
-        .claim("habitCategory", habitCategory != null ? habitCategory.name() : null)
-        .claim("reminderFrequency", reminderFrequency != null ? reminderFrequency.name() : null)
-        .setIssuedAt(now)
-        .setExpiration(expiryDate)
-        .signWith(SignatureAlgorithm.HS256, getSecretKey().getBytes())
-        .compact();
+        Date expiryDate = new Date(now.getTime() + validityDuration);
+        var builder = Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(SignatureAlgorithm.HS256, getSecretKey().getBytes());
+        if (email != null) builder.claim("email", email);
+        if (userId != null) builder.claim("id", userId);
+        if (role != null) builder.claim("role", role);
+        return builder.compact();
     }
 
-    // Método original para solo username
-    public String generateToken(String username) {
-        return generateToken(username, null, null);
+    // Genera un access token con claims de usuario
+    public String generateAccessToken(String username, String email, Long userId, String role) {
+        return generateToken(username, email, userId, role, false);
     }
+
+    // Genera un refresh token solo con username
+    public String generateRefreshToken(String username) {
+        return generateToken(username, null, null, null, true);
+    }
+
+    // Método para extraer el token del header Authorization
+    public Optional<String> resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        return (bearerToken != null && bearerToken.startsWith("Bearer "))
+                ? Optional.of(bearerToken.substring(7))
+                : Optional.empty();
+    }
+
 
     public String getUsernameFromToken(String token) {
         return getClaimsFromToken(token).map(Claims::getSubject).orElse(null);
     }
 
+    public String getEmailFromToken(String token) {
+        return getClaimsFromToken(token).map(claims -> claims.get("email", String.class)).orElse(null);
+    }
+
+    public Long getUserIdFromToken(String token) {
+        return getClaimsFromToken(token).map(claims -> claims.get("id", Long.class)).orElse(null);
+    }
+
+    public String getUserRoleFromToken(String token) {
+        return getClaimsFromToken(token).map(claims -> claims.get("role", String.class)).orElse(null);
+    }
+
+    // Métodos legacy para claims personalizados (opcional, puedes eliminar si no los usas)
     public HabitCategory getHabitCategoryFromToken(String token) {
         return getClaimsFromToken(token)
                 .map(claims -> {

@@ -9,6 +9,10 @@ import org.una.progra3.healthy_life.dtos.UserDTO;
 import org.una.progra3.healthy_life.entity.*;
 import org.una.progra3.healthy_life.service.UserService;
 
+import graphql.schema.DataFetchingEnvironment;
+import jakarta.servlet.http.HttpServletRequest;
+import org.una.progra3.healthy_life.security.jwt.JwtTokenProvider;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -18,6 +22,9 @@ public class UserResolver {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
     private UserDTO toDTO(User user) {
     if (user == null) return null;
@@ -52,6 +59,27 @@ public class UserResolver {
 
     @QueryMapping
     public UserDTO userByEmail(@Argument String email) {
+        return toDTO(userService.findByEmail(email));
+    }
+
+    @QueryMapping
+    public UserDTO currentUser(DataFetchingEnvironment env) {
+        HttpServletRequest request = env.getGraphQlContext().get("httpServletRequest");
+        System.out.println("[currentUser] HttpServletRequest: " + (request != null));
+        if (request == null) return null;
+        String authHeader = request.getHeader("Authorization");
+        System.out.println("[currentUser] Authorization header: " + authHeader);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("[currentUser] No Bearer token");
+            return null;
+        }
+        String token = authHeader.substring(7);
+        System.out.println("[currentUser] Token: " + token);
+        String email = jwtTokenProvider.getEmailFromToken(token);
+        System.out.println("[currentUser] Email from token: " + email);
+        if (email == null) return null;
+        boolean exists = userService.findByEmail(email) != null;
+        System.out.println("[currentUser] User exists: " + exists);
         return toDTO(userService.findByEmail(email));
     }
 

@@ -20,8 +20,13 @@ public class AuthenticationService {
         if (user == null) {
             throw new RuntimeException("Credenciales inválidas");
         }
-        String token = jwtTokenProvider.generateToken(user.getEmail());
         String role = user.getRole() != null ? user.getRole().getName() : null;
+        String token = jwtTokenProvider.generateAccessToken(
+            user.getEmail(), // username
+            user.getEmail(), // email
+            user.getId(),    // id
+            role             // role
+        );
         return new LoginResponse(token, user.getEmail(), user.getName(), role);
     }
 }

@@ -2,6 +2,7 @@ type Query {
     allUsers: [User!]!
     userById(id: ID!): User
     userByEmail(email: String!): User
+    currentUser: User
 }
 
 type LoginResponse {
