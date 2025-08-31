@@ -2,6 +2,7 @@ package org.una.progra3.healthy_life.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.progra3.healthy_life.entity.User;
 import org.una.progra3.healthy_life.repository.UserRepository;
@@ -14,6 +15,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public List<User> findAll() {
         return userRepository.findAll();
@@ -30,11 +34,11 @@ public class UserService {
     public User login(String email, String password) {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
-            System.out.println("[LOGIN] Usuario no encontrado para email: " + email);
+            System.out.println("Invalid credentials");
             return null;
         }
-        if (!user.getPassword().equals(password)) {
-            System.out.println("[LOGIN] Contraseña incorrecta para email: " + email);
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            System.out.println("Invalid credentials");
             return null;
         }
         return user;
@@ -48,10 +52,11 @@ public class UserService {
         if (user.getName() == null || user.getName().isBlank()) {
             throw new IllegalArgumentException("Name is required");
         }
-        if (userRepository.existsByEmail(user.getEmail())) {
+    if (userRepository.existsByEmail(user.getEmail())) {
             throw new RuntimeException("Email already exists");
         }
-        return userRepository.save(user);
+    user.setPassword(passwordEncoder.encode(user.getPassword()));
+    return userRepository.save(user);
     }
 
     @Transactional
@@ -68,7 +73,12 @@ public class UserService {
             }
             existing.setEmail(email);
         }
-        if (password != null) existing.setPassword(password);
+        if (password != null) {
+            if (password.isBlank()) {
+                throw new IllegalArgumentException("Password cannot be blank");
+            }
+            existing.setPassword(passwordEncoder.encode(password));
+        }
 
         return userRepository.save(existing);
     }
