@@ -12,6 +12,8 @@ import org.una.progra3.healthy_life.service.UserService;
 import graphql.schema.DataFetchingEnvironment;
 import jakarta.servlet.http.HttpServletRequest;
 import org.una.progra3.healthy_life.security.jwt.JwtTokenProvider;
+import org.una.progra3.healthy_life.entity.Habit;
+import org.una.progra3.healthy_life.service.HabitService;
 
 import java.util.List;
 import java.util.Set;
@@ -25,6 +27,9 @@ public class UserResolver {
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private HabitService habitService;
 
     private UserDTO toDTO(User user) {
     if (user == null) return null;
@@ -103,5 +108,12 @@ public class UserResolver {
     @MutationMapping
     public Boolean deleteUser(@Argument Long id) {
         return userService.deleteById(id);
+    }
+
+    @MutationMapping
+    public UserDTO toggleFavoriteHabit(@Argument Long userId, @Argument Long habitId) {
+        Habit habit = habitService.findById(habitId);
+        User updated = userService.toggleFavorite(userId, habit);
+        return toDTO(updated);
     }
 }

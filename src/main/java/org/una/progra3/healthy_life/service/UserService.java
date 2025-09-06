@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.progra3.healthy_life.entity.User;
+import org.una.progra3.healthy_life.entity.Habit;
 import org.una.progra3.healthy_life.repository.UserRepository;
 
 import java.util.List;
@@ -41,6 +42,7 @@ public class UserService {
             System.out.println("Invalid credentials");
             return null;
         }
+        System.out.println("Token: " + user.getAuthTokens());
         return user;
     }
 
@@ -81,6 +83,19 @@ public class UserService {
         }
 
         return userRepository.save(existing);
+    }
+
+    @Transactional
+    public User toggleFavorite(Long userId, Habit habit) {
+        User user = findById(userId);
+        if (user == null) throw new RuntimeException("User not found");
+        if (habit == null) throw new IllegalArgumentException("Habit is required");
+        if (user.getFavoriteHabits().contains(habit)) {
+            user.getFavoriteHabits().remove(habit);
+        } else {
+            user.getFavoriteHabits().add(habit);
+        }
+        return userRepository.save(user);
     }
 
     @Transactional

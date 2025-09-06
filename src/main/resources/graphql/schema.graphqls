@@ -3,6 +3,23 @@ type Query {
     userById(id: ID!): User
     userByEmail(email: String!): User
     currentUser: User
+    # Habits
+    habitsByCategory(category: HabitCategory!): [Habit!]!
+    habitById(id: ID!): Habit
+    # Routines
+    routinesByUser(userId: ID!): [Routine!]!
+    routineById(id: ID!): Routine
+    # Progress / Tracking
+    progressLogByDate(userId: ID!, date: String!): ProgressLog
+    weeklyProgress(userId: ID!, startDate: String!): [DailyProgress!]!
+    monthlyStatistics(userId: ID!, year: Int!, month: Int!): MonthlyStatistics!
+    # Guides
+    guidesByCategory(category: HabitCategory): [Guide!]!
+    guideById(id: ID!): Guide
+    # Reminders
+    remindersByUser(userId: ID!): [Reminder!]!
+    # Favorites
+    userFavoriteHabits(userId: ID!): [Habit!]!
 }
 
 type LoginResponse {
@@ -17,6 +34,29 @@ type Mutation {
     updateUser(id: ID!, name: String, email: String, password: String): User!
     deleteUser(id: ID!): Boolean!
     login(email: String!, password: String!): LoginResponse!
+    # Habit CRUD
+    createHabit(name: String!, category: HabitCategory!, description: String): Habit!
+    updateHabit(id: ID!, name: String, category: HabitCategory, description: String): Habit!
+    deleteHabit(id: ID!): Boolean!
+    # Favorites
+    toggleFavoriteHabit(userId: ID!, habitId: ID!): User!
+    # Routine / Activities
+    createRoutine(input: CreateRoutineInput!): Routine!
+    updateRoutine(id: ID!, title: String, daysOfWeek: String): Routine!
+    deleteRoutine(id: ID!): Boolean!
+    addRoutineActivity(routineId: ID!, habitId: ID!, duration: Int, targetTime: String, notes: String): RoutineActivity!
+    updateRoutineActivity(id: ID!, duration: Int, targetTime: String, notes: String): RoutineActivity!
+    deleteRoutineActivity(id: ID!): Boolean!
+    # Progress / Tracking
+    logCompletedActivity(userId: ID!, routineId: ID, habitId: ID!, notes: String): CompletedActivity!
+    # Guides
+    createGuide(title: String!, content: String!, category: HabitCategory, recommendedHabitIds: [ID!]): Guide!
+    updateGuide(id: ID!, title: String, content: String, category: HabitCategory, recommendedHabitIds: [ID!]): Guide!
+    deleteGuide(id: ID!): Boolean!
+    # Reminders
+    createReminder(userId: ID!, habitId: ID!, time: String!, frequency: ReminderFrequency!): Reminder!
+    updateReminder(id: ID!, time: String, frequency: ReminderFrequency): Reminder!
+    deleteReminder(id: ID!): Boolean!
 }
 
 type User {
@@ -29,4 +69,82 @@ type User {
     progressLogIds: [ID!]!
     reminderIds: [ID!]!
     authTokenIds: [ID!]!
+}
+
+# --- Domain Types ---
+enum HabitCategory { PHYSICAL MENTAL SLEEP DIET }
+enum ReminderFrequency { DAILY WEEKLY }
+
+type Habit {
+    id: ID!
+    name: String!
+    category: HabitCategory
+    description: String
+}
+
+type RoutineActivity {
+    id: ID!
+    habit: Habit!
+    duration: Int
+    targetTime: String
+    notes: String
+}
+
+type Routine {
+    id: ID!
+    title: String!
+    userId: ID!
+    daysOfWeek: String
+    activities: [RoutineActivity!]!
+}
+
+type CompletedActivity {
+    id: ID!
+    habit: Habit!
+    completedAt: String
+    notes: String
+}
+
+type ProgressLog {
+    id: ID!
+    userId: ID!
+    routineId: ID
+    date: String!
+    completedActivities: [CompletedActivity!]!
+}
+
+type Guide {
+    id: ID!
+    title: String!
+    content: String
+    category: HabitCategory
+    recommendedFor: [Habit!]!
+}
+
+type Reminder {
+    id: ID!
+    userId: ID!
+    habitId: ID!
+    time: String!
+    frequency: ReminderFrequency!
+}
+
+# Aggregation / Statistics
+type DailyProgress { date: String!, completedCount: Int! }
+type CategoryCount { category: HabitCategory!, count: Int! }
+type MonthlyStatistics { year: Int!, month: Int!, totalCompleted: Int!, categoryCounts: [CategoryCount!]! }
+
+# Inputs
+input RoutineActivityInput {
+    habitId: ID!
+    duration: Int
+    targetTime: String
+    notes: String
+}
+
+input CreateRoutineInput {
+    userId: ID!
+    title: String!
+    daysOfWeek: String
+    activities: [RoutineActivityInput!]
 }
