@@ -5,9 +5,10 @@ import org.springframework.stereotype.Repository;
 import org.una.progra3.healthy_life.entity.Role;
 
 import java.util.Optional;
+import org.una.progra3.healthy_life.entity.enums.RoleType;
 
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
-    Optional<Role> findByName(String name);
-    boolean existsByName(String name);
+    Optional<Role> findByName(RoleType name);
+    boolean existsByName(RoleType name);
 }

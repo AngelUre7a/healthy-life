@@ -1,20 +1,15 @@
-
 package org.una.progra3.healthy_life.dtos;
 
 import org.una.progra3.healthy_life.entity.enums.RoleType;
 
-public class RoleDTO {
-    private Long id;
+public class CreateRoleInput {
     private RoleType name;
     private String description;
     private boolean canRead;
     private boolean canWrite;
     private boolean canDelete;
 
-    public RoleDTO() {}
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public CreateRoleInput() {}
 
     public RoleType getName() { return name; }
     public void setName(RoleType name) { this.name = name; }

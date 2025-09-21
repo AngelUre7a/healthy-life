@@ -4,7 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.una.progra3.healthy_life.entity.Role;
+import org.una.progra3.healthy_life.entity.User;
 import org.una.progra3.healthy_life.repository.RoleRepository;
+import org.una.progra3.healthy_life.repository.UserRepository;
+import org.una.progra3.healthy_life.dtos.CreateRoleInput;
+import org.una.progra3.healthy_life.dtos.UpdateRoleInput;
 
 import java.util.List;
 
@@ -15,32 +19,50 @@ public class RoleService {
     @Autowired
     private RoleRepository roleRepository;
 
-    public List<Role> findAll() { return roleRepository.findAll(); }
-    public Role findById(Long id) { return roleRepository.findById(id).orElse(null); }
-    public Role findByName(String name) { return roleRepository.findByName(name).orElse(null); }
+    @Autowired
+    private UserRepository userRepository;
+
+    public List<Role> getAllRoles() { return roleRepository.findAll(); }
+
+    public Role getRoleById(Long id) { return roleRepository.findById(id).orElse(null); }
 
     @Transactional
-    public Role create(Role role) {
-        if (role.getName() == null || role.getName().isBlank()) throw new IllegalArgumentException("Role name is required");
-        if (roleRepository.existsByName(role.getName())) throw new RuntimeException("Role name already exists");
+    public Role createRole(CreateRoleInput input) {
+        if (input.getName() == null) throw new IllegalArgumentException("RoleType is required");
+    if (roleRepository.existsByName(input.getName())) throw new RuntimeException("Role name already exists");
+        Role role = new Role();
+        role.setName(input.getName());
+        role.setDescription(input.getDescription());
+        role.setCanRead(input.isCanRead());
+        role.setCanWrite(input.isCanWrite());
+        role.setCanDelete(input.isCanDelete());
         return roleRepository.save(role);
     }
 
     @Transactional
-    public Role update(Long id, String name, String permissions) {
-        Role existing = findById(id);
-        if (existing == null) throw new RuntimeException("Role not found");
-        if (name != null && !name.equals(existing.getName())) {
-            if (roleRepository.existsByName(name)) throw new RuntimeException("Role name already exists");
-            existing.setName(name);
-        }
-        if (permissions != null) existing.setPermissions(permissions);
-        return roleRepository.save(existing);
+    public Role updateRole(Long id, UpdateRoleInput input) {
+        Role role = getRoleById(id);
+        if (role == null) throw new RuntimeException("Role not found");
+        if (input.getName() != null) role.setName(input.getName());
+        if (input.getDescription() != null) role.setDescription(input.getDescription());
+        if (input.getCanRead() != null) role.setCanRead(input.getCanRead());
+        if (input.getCanWrite() != null) role.setCanWrite(input.getCanWrite());
+        if (input.getCanDelete() != null) role.setCanDelete(input.getCanDelete());
+        return roleRepository.save(role);
     }
 
     @Transactional
-    public boolean deleteById(Long id) {
+    public boolean deleteRole(Long id) {
         if (roleRepository.existsById(id)) { roleRepository.deleteById(id); return true; }
         return false;
+    }
+
+    @Transactional
+    public User assignRoleToUser(Long userId, Long roleId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
+        Role role = getRoleById(roleId);
+        if (role == null) throw new RuntimeException("Role not found");
+        user.setRole(role);
+        return userRepository.save(user);
     }
 }

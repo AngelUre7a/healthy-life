@@ -20,6 +20,9 @@ type Query {
     remindersByUser(userId: ID!): [Reminder!]!
     # Favorites
     userFavoriteHabits(userId: ID!): [Habit!]!
+    # Roles
+    allRoles: [Role!]!
+    roleById(id: ID!): Role
 }
 
 type LoginResponse {
@@ -30,16 +33,20 @@ type LoginResponse {
 }
 
 type Mutation {
+    # Users
     createUser(name: String!, email: String!, password: String!): User!
     updateUser(id: ID!, name: String, email: String, password: String): User!
     deleteUser(id: ID!): Boolean!
     login(email: String!, password: String!): LoginResponse!
+
     # Habit CRUD
     createHabit(name: String!, category: HabitCategory!, description: String): Habit!
     updateHabit(id: ID!, name: String, category: HabitCategory, description: String): Habit!
     deleteHabit(id: ID!): Boolean!
+
     # Favorites
     toggleFavoriteHabit(userId: ID!, habitId: ID!): User!
+
     # Routine / Activities
     createRoutine(input: CreateRoutineInput!): Routine!
     updateRoutine(id: ID!, title: String, daysOfWeek: String): Routine!
@@ -47,16 +54,25 @@ type Mutation {
     addRoutineActivity(routineId: ID!, habitId: ID!, duration: Int, targetTime: String, notes: String): RoutineActivity!
     updateRoutineActivity(id: ID!, duration: Int, targetTime: String, notes: String): RoutineActivity!
     deleteRoutineActivity(id: ID!): Boolean!
+
     # Progress / Tracking
     logCompletedActivity(userId: ID!, routineId: ID, habitId: ID!, notes: String): CompletedActivity!
+
     # Guides
     createGuide(title: String!, content: String!, category: HabitCategory, recommendedHabitIds: [ID!]): Guide!
     updateGuide(id: ID!, title: String, content: String, category: HabitCategory, recommendedHabitIds: [ID!]): Guide!
     deleteGuide(id: ID!): Boolean!
+
     # Reminders
     createReminder(userId: ID!, habitId: ID!, time: String!, frequency: ReminderFrequency!): Reminder!
     updateReminder(id: ID!, time: String, frequency: ReminderFrequency): Reminder!
     deleteReminder(id: ID!): Boolean!
+
+    # Roles
+    createRole(input: CreateRoleInput!): Role!
+    updateRole(id: ID!, input: UpdateRoleInput!): Role!
+    deleteRole(id: ID!): Boolean!
+    assignRoleToUser(userId: ID!, roleId: ID!): User!
 }
 
 type User {
@@ -74,6 +90,32 @@ type User {
 # --- Domain Types ---
 enum HabitCategory { PHYSICAL MENTAL SLEEP DIET }
 enum ReminderFrequency { DAILY WEEKLY }
+enum RoleType { USER SUPERVISOR ADMIN }
+
+type Role {
+    id: ID!
+    name: RoleType!
+    description: String
+    canRead: Boolean!
+    canWrite: Boolean!
+    canDelete: Boolean!
+}
+
+input CreateRoleInput {
+    name: RoleType!
+    description: String
+    canRead: Boolean!
+    canWrite: Boolean!
+    canDelete: Boolean!
+}
+
+input UpdateRoleInput {
+    name: RoleType
+    description: String
+    canRead: Boolean
+    canWrite: Boolean
+    canDelete: Boolean
+}
 
 type Habit {
     id: ID!

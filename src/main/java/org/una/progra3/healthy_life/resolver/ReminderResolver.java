@@ -9,6 +9,9 @@ import org.una.progra3.healthy_life.service.ReminderService;
 import org.una.progra3.healthy_life.service.UserService;
 import org.una.progra3.healthy_life.service.HabitService;
 
+import org.una.progra3.healthy_life.service.AuthenticationService;
+import org.una.progra3.healthy_life.security.PermissionValidator;
+
 import java.time.LocalTime;
 import java.util.List;
 
@@ -18,9 +21,12 @@ public class ReminderResolver {
     @Autowired private ReminderService reminderService;
     @Autowired private UserService userService;
     @Autowired private HabitService habitService;
+    @Autowired private AuthenticationService authenticationService;
 
     @QueryMapping
     public List<Reminder> remindersByUser(@Argument Long userId) {
+        User currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkRead(currentUser);
         User user = userService.findById(userId);
         return user == null ? List.of() : reminderService.findByUser(user);
     }
@@ -28,6 +34,8 @@ public class ReminderResolver {
     @MutationMapping
     public Reminder createReminder(@Argument Long userId, @Argument Long habitId, @Argument String time,
                                    @Argument ReminderFrequency frequency) {
+        User currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkWrite(currentUser);
         User user = userService.findById(userId);
         Habit habit = habitService.findById(habitId);
         return reminderService.create(user, habit, LocalTime.parse(time), frequency);
@@ -36,9 +44,16 @@ public class ReminderResolver {
     @MutationMapping
     public Reminder updateReminder(@Argument Long id, @Argument String time,
                                    @Argument ReminderFrequency frequency) {
+        User currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkWrite(currentUser);
         return reminderService.update(id, time != null ? LocalTime.parse(time) : null, frequency);
     }
 
     @MutationMapping
-    public Boolean deleteReminder(@Argument Long id) { return reminderService.deleteById(id); }
+    // ...existing code...
+    public Boolean deleteReminder(@Argument Long id) {
+        User currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkDelete(currentUser);
+        return reminderService.deleteById(id);
+    }
 }

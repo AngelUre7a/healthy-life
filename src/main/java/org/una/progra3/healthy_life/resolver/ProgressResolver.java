@@ -6,6 +6,9 @@ import org.springframework.stereotype.Controller;
 import org.una.progra3.healthy_life.entity.*;
 import org.una.progra3.healthy_life.service.*;
 
+import org.una.progra3.healthy_life.service.AuthenticationService;
+import org.una.progra3.healthy_life.security.PermissionValidator;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,9 +23,12 @@ public class ProgressResolver {
     @Autowired private UserService userService;
     @Autowired private HabitService habitService;
     @Autowired private ProgressStatisticsService progressStatisticsService;
+    @Autowired private AuthenticationService authenticationService;
 
     @QueryMapping
     public ProgressLog progressLogByDate(@Argument Long userId, @Argument String date) {
+        User currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkRead(currentUser);
         User u = userService.findById(userId);
         if (u == null) return null;
         List<ProgressLog> logs = progressLogService.findByUserAndDate(u, LocalDate.parse(date));
@@ -31,6 +37,8 @@ public class ProgressResolver {
 
     @QueryMapping
     public List<DailyProgress> weeklyProgress(@Argument Long userId, @Argument String startDate) {
+        User currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkRead(currentUser);
         User u = userService.findById(userId);
         if (u == null) return List.of();
         Map<java.time.LocalDate, Long> map = progressStatisticsService.weeklyCompletedCounts(u, LocalDate.parse(startDate));
@@ -39,16 +47,20 @@ public class ProgressResolver {
 
     @QueryMapping
     public MonthlyStatistics monthlyStatistics(@Argument Long userId, @Argument int year, @Argument int month) {
-        User u = userService.findById(userId);
-        if (u == null) return new MonthlyStatistics(year, month, 0, List.of());
-        var stats = progressStatisticsService.monthlyStats(u, year, month);
-        return new MonthlyStatistics(stats.year(), stats.month(), stats.totalCompleted(),
-                stats.categoryCounts().stream().map(c -> new CategoryCount(c.category(), c.count())).toList());
+    User currentUser = authenticationService.getCurrentUser();
+    PermissionValidator.checkRead(currentUser);
+    User u = userService.findById(userId);
+    if (u == null) return new MonthlyStatistics(year, month, 0, List.of());
+    var stats = progressStatisticsService.monthlyStats(u, year, month);
+    return new MonthlyStatistics(stats.year(), stats.month(), stats.totalCompleted(),
+        stats.categoryCounts().stream().map(c -> new CategoryCount(c.category(), c.count())).toList());
     }
 
     @MutationMapping
     public CompletedActivity logCompletedActivity(@Argument Long userId, @Argument Long routineId,
                                                   @Argument Long habitId, @Argument String notes) {
+        User currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkWrite(currentUser);
         User u = userService.findById(userId);
         if (u == null) throw new RuntimeException("User not found");
         Routine r = routineId != null ? routineService.findById(routineId) : null;

@@ -15,6 +15,9 @@ import org.una.progra3.healthy_life.security.jwt.JwtTokenProvider;
 import org.una.progra3.healthy_life.entity.Habit;
 import org.una.progra3.healthy_life.service.HabitService;
 
+import org.una.progra3.healthy_life.service.AuthenticationService;
+import org.una.progra3.healthy_life.security.PermissionValidator;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,12 +27,12 @@ public class UserResolver {
 
     @Autowired
     private UserService userService;
-
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
-
     @Autowired
     private HabitService habitService;
+    @Autowired
+    private AuthenticationService authenticationService;
 
     private UserDTO toDTO(User user) {
     if (user == null) return null;
@@ -59,33 +62,22 @@ public class UserResolver {
 
     @QueryMapping
     public UserDTO userById(@Argument Long id) {
+        var currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkRead(currentUser);
         return toDTO(userService.findById(id));
     }
 
     @QueryMapping
     public UserDTO userByEmail(@Argument String email) {
+        var currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkRead(currentUser);
         return toDTO(userService.findByEmail(email));
     }
 
     @QueryMapping
     public UserDTO currentUser(DataFetchingEnvironment env) {
-        HttpServletRequest request = env.getGraphQlContext().get("httpServletRequest");
-        System.out.println("[currentUser] HttpServletRequest: " + (request != null));
-        if (request == null) return null;
-        String authHeader = request.getHeader("Authorization");
-        System.out.println("[currentUser] Authorization header: " + authHeader);
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            System.out.println("[currentUser] No Bearer token");
-            return null;
-        }
-        String token = authHeader.substring(7);
-        System.out.println("[currentUser] Token: " + token);
-        String email = jwtTokenProvider.getEmailFromToken(token);
-        System.out.println("[currentUser] Email from token: " + email);
-        if (email == null) return null;
-        boolean exists = userService.findByEmail(email) != null;
-        System.out.println("[currentUser] User exists: " + exists);
-        return toDTO(userService.findByEmail(email));
+        // No JWT or permission validation for currentUser
+        return null;
     }
 
 
@@ -102,16 +94,22 @@ public class UserResolver {
     @MutationMapping
     public UserDTO updateUser(@Argument Long id, @Argument String name,
                               @Argument String email, @Argument String password) {
+        var currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkWrite(currentUser);
         return toDTO(userService.update(id, name, email, password));
     }
 
     @MutationMapping
     public Boolean deleteUser(@Argument Long id) {
+        var currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkDelete(currentUser);
         return userService.deleteById(id);
     }
 
     @MutationMapping
     public UserDTO toggleFavoriteHabit(@Argument Long userId, @Argument Long habitId) {
+        var currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkWrite(currentUser);
         Habit habit = habitService.findById(habitId);
         User updated = userService.toggleFavorite(userId, habit);
         return toDTO(updated);
