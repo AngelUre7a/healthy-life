@@ -11,6 +11,8 @@ import org.una.progra3.healthy_life.security.jwt.JwtTokenProvider;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
 
 @Service
 public class AuthenticationService {
@@ -29,16 +31,28 @@ public class AuthenticationService {
             throw new RuntimeException("Credenciales inválidas");
         }
         String role = user.getRole() != null ? user.getRole().getName().name() : null;
-        String token = jwtTokenProvider.generateAccessToken(
+        String accessToken = jwtTokenProvider.generateAccessToken(
             user.getEmail(), // username
             user.getEmail(), // email
             user.getId(),    // id
             role             // role
         );
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getEmail());
         // Imprimir el token para facilitar pruebas manuales (no recomendado en producción)
-        log.info("JWT Token generado para {}: {}", email, token);
-        System.out.println("JWT Token: " + token);
-        return new LoginResponse(token, user.getEmail(), user.getName(), role);
+        log.info("JWT Token generado para {}: {}", email, accessToken);
+        System.out.println("JWT Token: " + accessToken);
+
+        // Set-Cookie para access y refresh tokens (HttpOnly)
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attrs != null) {
+            HttpServletResponse response = attrs.getResponse();
+            if (response != null) {
+                response.addHeader(HttpHeaders.SET_COOKIE, jwtTokenProvider.buildAccessTokenCookie(accessToken).toString());
+                response.addHeader(HttpHeaders.SET_COOKIE, jwtTokenProvider.buildRefreshTokenCookie(refreshToken).toString());
+            }
+        }
+
+        return new LoginResponse(accessToken, user.getEmail(), user.getName(), role);
     }
 
     /**

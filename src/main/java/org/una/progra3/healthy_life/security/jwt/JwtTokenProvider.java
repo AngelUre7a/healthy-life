@@ -7,10 +7,12 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.una.progra3.healthy_life.entity.enums.HabitCategory;
 import org.una.progra3.healthy_life.entity.enums.ReminderFrequency;
 
+import jakarta.servlet.http.Cookie;
 import java.util.Date;
 import java.util.Optional;
 
@@ -33,6 +35,13 @@ public class JwtTokenProvider {
 
     @Value("${jwt.expiration.refresh}")
     private long refreshTokenValidity;
+
+    // Configuración de cookies (parametrizable desde application.properties)
+    @Value("${jwt.cookie.secure:true}")
+    private boolean cookieSecure;
+
+    @Value("${jwt.cookie.samesite:Lax}")
+    private String cookieSameSite;
 
 
 
@@ -62,12 +71,63 @@ public class JwtTokenProvider {
         return generateToken(username, null, null, null, true);
     }
 
-    // Método para extraer el token del header Authorization
+    // Método para extraer el token del header Authorization o de la cookie "access_token"
     public Optional<String> resolveToken(jakarta.servlet.http.HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        return (bearerToken != null && bearerToken.startsWith("Bearer "))
-                ? Optional.of(bearerToken.substring(7))
-                : Optional.empty();
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return Optional.of(bearerToken.substring(7));
+        }
+
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("access_token".equals(cookie.getName())) {
+                    return Optional.ofNullable(cookie.getValue());
+                }
+            }
+        }
+        return Optional.empty();
+    }
+
+    // Helpers para emitir/limpiar cookies de access/refresh token
+    public ResponseCookie buildAccessTokenCookie(String token) {
+        return ResponseCookie.from("access_token", token)
+                .httpOnly(true)
+                .secure(cookieSecure)   // En producción debe ser true (HTTPS)
+                .path("/")
+                .sameSite(cookieSameSite) // Usa "None" si el frontend está en otro dominio y envías credenciales cross-site
+                .maxAge(accessTokenValidity / 1000) // maxAge en segundos
+                .build();
+    }
+
+    public ResponseCookie clearAccessTokenCookie() {
+    return ResponseCookie.from("access_token", "")
+                .httpOnly(true)
+        .secure(cookieSecure)
+                .path("/")
+        .sameSite(cookieSameSite)
+                .maxAge(0)
+                .build();
+    }
+
+    public ResponseCookie buildRefreshTokenCookie(String token) {
+    return ResponseCookie.from("refresh_token", token)
+                .httpOnly(true)
+        .secure(cookieSecure)
+                .path("/auth/refresh") // limita el scope si quieres
+        .sameSite(cookieSameSite)
+                .maxAge(refreshTokenValidity / 1000)
+                .build();
+    }
+
+    public ResponseCookie clearRefreshTokenCookie() {
+    return ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+        .secure(cookieSecure)
+                .path("/auth/refresh")
+        .sameSite(cookieSameSite)
+                .maxAge(0)
+                .build();
     }
 
 

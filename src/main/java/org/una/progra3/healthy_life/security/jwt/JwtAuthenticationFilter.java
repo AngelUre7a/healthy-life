@@ -17,45 +17,45 @@ import java.util.Optional;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-	private final JwtTokenProvider jwtTokenProvider;
+    private final JwtTokenProvider jwtTokenProvider;
 
-	@Autowired
-	public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
-		this.jwtTokenProvider = jwtTokenProvider;
-	}
+    @Autowired
+    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
+    }
 
-	@Override
-	protected void doFilterInternal(HttpServletRequest request,
-									HttpServletResponse response,
-									FilterChain filterChain) throws ServletException, IOException {
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
-		try {
-			Optional<String> tokenOpt = jwtTokenProvider.resolveToken(request);
-			if (tokenOpt.isPresent()) {
-				String token = tokenOpt.get();
+        try {
+            Optional<String> tokenOpt = jwtTokenProvider.resolveToken(request);
+            if (tokenOpt.isPresent()) {
+                String token = tokenOpt.get();
 
-				// Only attach attributes if the token is parseable and not expired.
-				String username = jwtTokenProvider.getUsernameFromToken(token);
-				if (username != null && !jwtTokenProvider.isTokenExpired(token)) {
-					request.setAttribute("auth.username", username);
+                // Only attach attributes if the token is parseable and not expired.
+                String username = jwtTokenProvider.getUsernameFromToken(token);
+                if (username != null && !jwtTokenProvider.isTokenExpired(token)) {
+                    request.setAttribute("auth.username", username);
 
-					Long userId = jwtTokenProvider.getUserIdFromToken(token);
-					if (userId != null) request.setAttribute("auth.userId", userId);
+                    Long userId = jwtTokenProvider.getUserIdFromToken(token);
+                    if (userId != null) request.setAttribute("auth.userId", userId);
 
-					String email = jwtTokenProvider.getEmailFromToken(token);
-					if (email != null) request.setAttribute("auth.email", email);
+                    String email = jwtTokenProvider.getEmailFromToken(token);
+                    if (email != null) request.setAttribute("auth.email", email);
 
-					String role = jwtTokenProvider.getUserRoleFromToken(token);
-					if (role != null) request.setAttribute("auth.role", role);
-				}
-			}
-		} catch (Exception ex) {
-			// Be lenient: never block the request here. Just log and continue.
-			logger.debug("JWT filter continuing without auth context: {}", ex.getMessage());
-		}
+                    String role = jwtTokenProvider.getUserRoleFromToken(token);
+                    if (role != null) request.setAttribute("auth.role", role);
+                }
+            }
+        } catch (Exception ex) {
+            // Be lenient: never block the request here. Just log and continue.
+            logger.debug("JWT filter continuing without auth context: {}", ex.getMessage());
+        }
 
-		filterChain.doFilter(request, response);
-	}
+        filterChain.doFilter(request, response);
+    }
 }
