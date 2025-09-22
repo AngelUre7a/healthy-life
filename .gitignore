@@ -33,5 +33,3 @@ build/
 .vscode/
 .env
 base de datos.txt
-database-schema.md
-comandosParaCompilar.txt
