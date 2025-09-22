@@ -84,7 +84,7 @@ public class UserResolverTest {
         User u1 = new User(); u1.setId(1L);
         User u2 = new User(); u2.setId(2L);
         when(userService.findAll()).thenReturn(List.of(u1, u2));
-        List<UserDTO> list = userResolver.allUsers();
+        List<UserDTO> list = userResolver.allUsersSimple();
         assertEquals(2, list.size());
         assertEquals(1L, list.get(0).getId());
         assertEquals(2L, list.get(1).getId());

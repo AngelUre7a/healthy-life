@@ -4,11 +4,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.una.progra3.healthy_life.entity.User;
 import org.una.progra3.healthy_life.entity.Habit;
 import org.una.progra3.healthy_life.repository.UserRepository;
+import org.una.progra3.healthy_life.dtos.PageInputDTO;
+import org.una.progra3.healthy_life.dtos.PageInfoDTO;
+import org.una.progra3.healthy_life.dtos.UserPagedResponseDTO;
+import org.una.progra3.healthy_life.dtos.UserDTO;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -22,6 +31,28 @@ public class UserService {
 
     public List<User> findAll() {
         return userRepository.findAll();
+    }
+
+    public Page<User> findAllPaginated(PageInputDTO pageInput) {
+        Sort sort = pageInput.getSortDirection().equalsIgnoreCase("DESC") 
+            ? Sort.by(pageInput.getSortBy()).descending()
+            : Sort.by(pageInput.getSortBy()).ascending();
+        
+        Pageable pageable = PageRequest.of(pageInput.getPage(), pageInput.getSize(), sort);
+        return userRepository.findAll(pageable);
+    }
+
+    public PageInfoDTO createPageInfo(Page<?> page) {
+        return new PageInfoDTO(
+            page.hasNext(),
+            page.hasPrevious(),
+            page.hasContent() ? String.valueOf(page.getContent().get(0).hashCode()) : null,
+            page.hasContent() ? String.valueOf(page.getContent().get(page.getContent().size() - 1).hashCode()) : null,
+            (int) page.getTotalElements(),
+            page.getTotalPages(),
+            page.getNumber(),
+            page.getSize()
+        );
     }
 
     public User findById(Long id) {

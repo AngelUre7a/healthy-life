@@ -1,6 +1,8 @@
 package org.una.progra3.healthy_life.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.una.progra3.healthy_life.entity.Reminder;
 import org.una.progra3.healthy_life.entity.User;
@@ -12,6 +14,7 @@ import java.util.List;
 @Repository
 public interface ReminderRepository extends JpaRepository<Reminder, Long> {
     List<Reminder> findByUser(User user);
+    Page<Reminder> findByUser(User user, Pageable pageable);
     List<Reminder> findByHabit(Habit habit);
     List<Reminder> findByUserAndFrequency(User user, ReminderFrequency frequency);
 }

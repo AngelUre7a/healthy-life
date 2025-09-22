@@ -3,9 +3,15 @@ package org.una.progra3.healthy_life.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.una.progra3.healthy_life.entity.Habit;
 import org.una.progra3.healthy_life.entity.enums.HabitCategory;
 import org.una.progra3.healthy_life.repository.HabitRepository;
+import org.una.progra3.healthy_life.dtos.PageInputDTO;
+import org.una.progra3.healthy_life.dtos.PageInfoDTO;
 
 import java.util.List;
 
@@ -17,6 +23,37 @@ public class HabitService {
     private HabitRepository habitRepository;
 
     public List<Habit> findAll() { return habitRepository.findAll(); }
+
+    public Page<Habit> findAllPaginated(PageInputDTO pageInput) {
+        Sort sort = pageInput.getSortDirection().equalsIgnoreCase("DESC") 
+            ? Sort.by(pageInput.getSortBy()).descending()
+            : Sort.by(pageInput.getSortBy()).ascending();
+        
+        Pageable pageable = PageRequest.of(pageInput.getPage(), pageInput.getSize(), sort);
+        return habitRepository.findAll(pageable);
+    }
+
+    public Page<Habit> findByCategoryPaginated(HabitCategory category, PageInputDTO pageInput) {
+        Sort sort = pageInput.getSortDirection().equalsIgnoreCase("DESC") 
+            ? Sort.by(pageInput.getSortBy()).descending()
+            : Sort.by(pageInput.getSortBy()).ascending();
+        
+        Pageable pageable = PageRequest.of(pageInput.getPage(), pageInput.getSize(), sort);
+        return habitRepository.findByCategory(category, pageable);
+    }
+
+    public PageInfoDTO createPageInfo(Page<?> page) {
+        return new PageInfoDTO(
+            page.hasNext(),
+            page.hasPrevious(),
+            page.hasContent() ? String.valueOf(page.getContent().get(0).hashCode()) : null,
+            page.hasContent() ? String.valueOf(page.getContent().get(page.getContent().size() - 1).hashCode()) : null,
+            (int) page.getTotalElements(),
+            page.getTotalPages(),
+            page.getNumber(),
+            page.getSize()
+        );
+    }
 
     public Habit findById(Long id) { return habitRepository.findById(id).orElse(null); }
 

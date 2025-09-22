@@ -22,7 +22,7 @@ public class RoutineResolver {
     @Autowired private AuthenticationService authenticationService;
 
     @QueryMapping
-    public List<Routine> routinesByUser(@Argument Long userId) {
+    public List<Routine> routinesByUserSimple(@Argument Long userId) {
         var currentUser = authenticationService.getCurrentUser();
         PermissionValidator.checkRead(currentUser);
 

@@ -1,27 +1,37 @@
 type Query {
-    allUsers: [User!]!
+    # Users - with pagination
+    allUsers(pageInput: PageInput): UserPagedResponse!
+    allUsersSimple: [User!]! # Keep original for backward compatibility
     userById(id: ID!): User
     userByEmail(email: String!): User
     currentUser: User
-    # Habits
-    habitsByCategory(category: HabitCategory!): [Habit!]!
+    # Habits - with pagination
+    habitsByCategory(category: HabitCategory!, pageInput: PageInput): HabitPagedResponse!
+    habitsByCategorySimple(category: HabitCategory!): [Habit!]! # Keep original for backward compatibility
+    allHabits(pageInput: PageInput): HabitPagedResponse!
     habitById(id: ID!): Habit
-    # Routines
-    routinesByUser(userId: ID!): [Routine!]!
+    # Routines - with pagination
+    routinesByUser(userId: ID!, pageInput: PageInput): RoutinePagedResponse!
+    routinesByUserSimple(userId: ID!): [Routine!]! # Keep original for backward compatibility
+    allRoutines(pageInput: PageInput): RoutinePagedResponse!
     routineById(id: ID!): Routine
     # Progress / Tracking
     progressLogByDate(userId: ID!, date: String!): ProgressLog
     weeklyProgress(userId: ID!, startDate: String!): [DailyProgress!]!
     monthlyStatistics(userId: ID!, year: Int!, month: Int!): MonthlyStatistics!
-    # Guides
-    guidesByCategory(category: HabitCategory): [Guide!]!
+    # Guides - with pagination
+    guidesByCategory(category: HabitCategory, pageInput: PageInput): GuidePagedResponse!
+    guidesByCategorySimple(category: HabitCategory): [Guide!]! # Keep original for backward compatibility
+    allGuides(pageInput: PageInput): GuidePagedResponse!
     guideById(id: ID!): Guide
-    # Reminders
-    remindersByUser(userId: ID!): [Reminder!]!
+    # Reminders - with pagination
+    remindersByUser(userId: ID!, pageInput: PageInput): ReminderPagedResponse!
+    remindersByUserSimple(userId: ID!): [Reminder!]! # Keep original for backward compatibility
     # Favorites
     userFavoriteHabits(userId: ID!): [Habit!]!
-    # Roles
-    allRoles: [Role!]!
+    # Roles - with pagination
+    allRoles(pageInput: PageInput): RolePagedResponse!
+    allRolesSimple: [Role!]! # Keep original for backward compatibility
     roleById(id: ID!): Role
 }
 
@@ -73,6 +83,11 @@ type Mutation {
     updateRole(id: ID!, input: UpdateRoleInput!): Role!
     deleteRole(id: ID!): Boolean!
     assignRoleToUser(userId: ID!, roleId: ID!): User!
+    
+    # Data Generation (Development/Testing only)
+    generateMassiveDataset: DatasetGenerationResponse!
+    cleanGeneratedData: DatasetGenerationResponse!
+    getDatasetStatistics: DatasetStatistics!
 }
 
 type User {
@@ -189,4 +204,71 @@ input CreateRoutineInput {
     title: String!
     daysOfWeek: String
     activities: [RoutineActivityInput!]
+}
+
+# Pagination Types
+input PageInput {
+    page: Int = 0
+    size: Int = 20
+    sortBy: String = "id"
+    sortDirection: String = "ASC"
+}
+
+type PageInfo {
+    hasNextPage: Boolean!
+    hasPreviousPage: Boolean!
+    startCursor: String
+    endCursor: String
+    totalElements: Int!
+    totalPages: Int!
+    currentPage: Int!
+    pageSize: Int!
+}
+
+# Paginated Response Types
+type UserPagedResponse {
+    content: [User!]!
+    pageInfo: PageInfo!
+}
+
+type HabitPagedResponse {
+    content: [Habit!]!
+    pageInfo: PageInfo!
+}
+
+type RoutinePagedResponse {
+    content: [Routine!]!
+    pageInfo: PageInfo!
+}
+
+type GuidePagedResponse {
+    content: [Guide!]!
+    pageInfo: PageInfo!
+}
+
+type ReminderPagedResponse {
+    content: [Reminder!]!
+    pageInfo: PageInfo!
+}
+
+# Data Generation Types (Development/Testing only)
+type DatasetGenerationResponse {
+    success: Boolean!
+    message: String!
+}
+
+type DatasetStatistics {
+    users: Int!
+    habits: Int!
+    routines: Int!
+    guides: Int!
+    reminders: Int!
+    completedActivities: Int!
+    progressLogs: Int!
+    roles: Int!
+}
+
+type RolePagedResponse {
+    content: [Role!]!
+    pageInfo: PageInfo!
 }

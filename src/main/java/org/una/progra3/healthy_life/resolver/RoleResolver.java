@@ -27,6 +27,11 @@ public class RoleResolver {
     }
 
     @QueryMapping
+    public List<Role> allRolesSimple() {
+        return roleService.getAllRoles();
+    }
+
+    @QueryMapping
     public Role roleById(@Argument Long id) {
         return roleService.getRoleById(id);
     }

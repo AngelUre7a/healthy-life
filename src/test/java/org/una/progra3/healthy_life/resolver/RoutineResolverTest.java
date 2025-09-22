@@ -51,7 +51,7 @@ public class RoutineResolverTest {
         Mockito.when(authenticationService.getCurrentUser()).thenReturn(user);
         Mockito.when(userService.findById(1L)).thenReturn(user);
         Mockito.when(routineService.findByUser(user)).thenReturn(List.of(new Routine()));
-        List<Routine> result = routineResolver.routinesByUser(1L);
+        List<Routine> result = routineResolver.routinesByUserSimple(1L);
         assertEquals(1, result.size());
     }
 

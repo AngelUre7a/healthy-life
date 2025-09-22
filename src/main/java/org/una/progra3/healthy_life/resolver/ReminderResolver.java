@@ -31,6 +31,14 @@ public class ReminderResolver {
         return user == null ? List.of() : reminderService.findByUser(user);
     }
 
+    @QueryMapping
+    public List<Reminder> remindersByUserSimple(@Argument Long userId) {
+        User currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkRead(currentUser);
+        User user = userService.findById(userId);
+        return user == null ? List.of() : reminderService.findByUser(user);
+    }
+
     @MutationMapping
     public Reminder createReminder(@Argument Long userId, @Argument Long habitId, @Argument String time,
                                    @Argument ReminderFrequency frequency) {

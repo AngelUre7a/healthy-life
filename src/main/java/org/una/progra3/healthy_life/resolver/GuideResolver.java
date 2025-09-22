@@ -32,6 +32,13 @@ public class GuideResolver {
     }
 
     @QueryMapping
+    public List<Guide> guidesByCategorySimple(@Argument HabitCategory category) {
+        var currentUser = authenticationService.getCurrentUser();
+        PermissionValidator.checkRead(currentUser);
+        return category == null ? guideService.findAll() : guideService.findByCategory(category);
+    }
+
+    @QueryMapping
     // ...existing code...
     public Guide guideById(@Argument Long id) {
         var currentUser = authenticationService.getCurrentUser();

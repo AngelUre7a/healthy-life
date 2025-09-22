@@ -3,7 +3,9 @@ package org.una.progra3.healthy_life.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.una.progra3.healthy_life.entity.enums.HabitCategory;
 
 import java.util.Set;
@@ -13,6 +15,8 @@ import java.util.Set;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(exclude = {"favoredBy"})
+@ToString(exclude = {"favoredBy"})
 public class Habit {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

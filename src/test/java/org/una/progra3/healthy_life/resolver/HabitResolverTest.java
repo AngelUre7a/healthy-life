@@ -34,7 +34,7 @@ public class HabitResolverTest {
         User user = new User(); user.setRole(role);
         when(authenticationService.getCurrentUser()).thenReturn(user);
         when(habitService.findByCategory(HabitCategory.PHYSICAL)).thenReturn(List.of(new Habit()));
-        List<Habit> result = habitResolver.habitsByCategory(HabitCategory.PHYSICAL);
+        List<Habit> result = habitResolver.habitsByCategorySimple(HabitCategory.PHYSICAL);
         assertEquals(1, result.size());
         verify(habitService).findByCategory(HabitCategory.PHYSICAL);
     }
@@ -44,7 +44,7 @@ public class HabitResolverTest {
         Role role = new Role(); role.setCanRead(false);
         User user = new User(); user.setRole(role);
         when(authenticationService.getCurrentUser()).thenReturn(user);
-        assertThrows(RuntimeException.class, () -> habitResolver.habitsByCategory(HabitCategory.SLEEP));
+        assertThrows(RuntimeException.class, () -> habitResolver.habitsByCategorySimple(HabitCategory.SLEEP));
         verify(habitService, never()).findByCategory(any());
     }
 
