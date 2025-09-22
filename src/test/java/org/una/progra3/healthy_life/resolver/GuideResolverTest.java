@@ -26,6 +26,52 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class GuideResolverTest {
+    @Test
+    void testUpdateGuide_happyPath() {
+    Role role = new Role(); role.setCanWrite(true); role.setCanDelete(true);
+    User user = new User(); user.setRole(role);
+        when(authenticationService.getCurrentUser()).thenReturn(user);
+        Guide existing = new Guide(); existing.setId(1L);
+        when(guideService.findById(1L)).thenReturn(existing);
+        when(guideService.create(any())).thenReturn(existing);
+        Guide result = guideResolver.updateGuide(1L, "title", "content", HabitCategory.PHYSICAL, List.of("1"));
+        assertNotNull(result);
+        verify(guideService).create(any());
+        when(guideService.deleteById(5L)).thenReturn(true);
+        assertTrue(guideResolver.deleteGuide(5L));
+        verify(guideService).deleteById(5L);
+    }
+
+    @Test
+    void testDeleteGuide_noDeletePermission_throws() {
+        Role role = new Role(); role.setCanDelete(false);
+        User user = new User(); user.setRole(role);
+        when(authenticationService.getCurrentUser()).thenReturn(user);
+        assertThrows(RuntimeException.class, () -> guideResolver.deleteGuide(5L));
+        verify(guideService, never()).deleteById(anyLong());
+    }
+
+    @Test
+    void testResolveHabits_validIds() throws Exception {
+        GuideResolver resolver = new GuideResolver();
+        HabitService habitServiceMock = mock(HabitService.class);
+        Habit h1 = new Habit(); h1.setId(1L);
+        Habit h2 = new Habit(); h2.setId(2L);
+        when(habitServiceMock.findById(1L)).thenReturn(h1);
+        when(habitServiceMock.findById(2L)).thenReturn(h2);
+        // Inyectar el mock por reflexión
+        java.lang.reflect.Field field = GuideResolver.class.getDeclaredField("habitService");
+        field.setAccessible(true);
+        field.set(resolver, habitServiceMock);
+        java.lang.reflect.Method method = resolver.getClass().getDeclaredMethod("resolveHabits", List.class);
+        method.setAccessible(true);
+        Object resultObj = method.invoke(resolver, List.of("1", "2"));
+        @SuppressWarnings("unchecked")
+        Set<Habit> resultSet = (Set<Habit>) resultObj;
+        assertEquals(2, resultSet.size());
+        assertTrue(resultSet.contains(h1));
+        assertTrue(resultSet.contains(h2));
+    }
     @Mock GuideService guideService;
     @Mock HabitService habitService;
     @Mock AuthenticationService authenticationService;
@@ -273,15 +319,4 @@ public class GuideResolverTest {
         verify(guideService).deleteById(42L);
     }
 
-    @Test
-    void testDeleteGuide_noDeletePermission_throws() {
-        Role role = new Role();
-        role.setCanDelete(false);
-        User user = new User();
-        user.setRole(role);
-        when(authenticationService.getCurrentUser()).thenReturn(user);
-
-        assertThrows(RuntimeException.class, () -> guideResolver.deleteGuide(55L));
-        verify(guideService, never()).deleteById(anyLong());
-    }
 }

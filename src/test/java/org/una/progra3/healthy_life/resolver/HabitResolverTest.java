@@ -15,6 +15,12 @@ import org.una.progra3.healthy_life.service.UserService;
 
 import java.util.List;
 import java.util.Set;
+import org.una.progra3.healthy_life.dtos.HabitDTO;
+import org.una.progra3.healthy_life.dtos.HabitPagedResponseDTO;
+import org.una.progra3.healthy_life.dtos.PageInfoDTO;
+import org.una.progra3.healthy_life.dtos.PageInputDTO;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Page;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -22,6 +28,50 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class HabitResolverTest {
+    @Test
+    void testHabitsByCategory_paginated() {
+        Role role = new Role(); role.setCanRead(true);
+        User user = new User(); user.setRole(role);
+        when(authenticationService.getCurrentUser()).thenReturn(user);
+        PageInputDTO pageInput = new PageInputDTO(0, 2);
+        Page<Habit> page = new PageImpl<>(List.of(new Habit()));
+        when(habitService.findByCategoryPaginated(eq(HabitCategory.PHYSICAL), any())).thenReturn(page);
+        when(habitService.createPageInfo(any())).thenReturn(new PageInfoDTO());
+        HabitPagedResponseDTO result = habitResolver.habitsByCategory(HabitCategory.PHYSICAL, pageInput);
+        assertNotNull(result);
+        assertNotNull(result.getContent());
+        verify(habitService).findByCategoryPaginated(eq(HabitCategory.PHYSICAL), any());
+    }
+
+    @Test
+    void testAllHabits_paginated() {
+        Role role = new Role(); role.setCanRead(true);
+        User user = new User(); user.setRole(role);
+        when(authenticationService.getCurrentUser()).thenReturn(user);
+        PageInputDTO pageInput = new PageInputDTO(0, 2);
+        Page<Habit> page = new PageImpl<>(List.of(new Habit()));
+        when(habitService.findAllPaginated(any())).thenReturn(page);
+        when(habitService.createPageInfo(any())).thenReturn(new PageInfoDTO());
+        HabitPagedResponseDTO result = habitResolver.allHabits(pageInput);
+        assertNotNull(result);
+        assertNotNull(result.getContent());
+        verify(habitService).findAllPaginated(any());
+    }
+
+    @Test
+    void testToDTO() {
+        Habit habit = new Habit();
+        habit.setId(1L);
+        habit.setName("Test");
+        habit.setCategory(HabitCategory.PHYSICAL);
+        habit.setDescription("desc");
+        HabitDTO dto = habitResolver.toDTO(habit);
+        assertNotNull(dto);
+        assertEquals(1L, dto.getId());
+        assertEquals("Test", dto.getName());
+        assertEquals(HabitCategory.PHYSICAL.toString(), dto.getCategory());
+        assertEquals("desc", dto.getDescription());
+    }
     @Mock HabitService habitService;
     @Mock UserService userService;
     @Mock AuthenticationService authenticationService;

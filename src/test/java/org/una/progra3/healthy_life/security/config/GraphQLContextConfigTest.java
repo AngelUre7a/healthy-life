@@ -9,10 +9,11 @@ import org.springframework.graphql.server.WebGraphQlResponse;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import reactor.core.publisher.Mono;
+import graphql.ExecutionInput;
+import graphql.GraphQLContext;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-
 
 public class GraphQLContextConfigTest {
 
@@ -25,7 +26,6 @@ public class GraphQLContextConfigTest {
 
     @Test
     void intercept_noRequestAttributes_callsChainOnly() {
-        // No attributes set
         WebGraphQlRequest request = mock(WebGraphQlRequest.class);
         WebGraphQlResponse response = mock(WebGraphQlResponse.class);
         WebGraphQlInterceptor.Chain chain = mock(WebGraphQlInterceptor.Chain.class);
@@ -68,13 +68,27 @@ public class GraphQLContextConfigTest {
         WebGraphQlInterceptor.Chain chain = mock(WebGraphQlInterceptor.Chain.class);
         when(chain.next(request)).thenReturn(Mono.just(response));
 
-        // Do not execute the default method; just verify it's invoked
-        doNothing().when(request).configureExecutionInput(any());
+        // Capture and execute the lambda passed into configureExecutionInput to cover inner lambdas
+        doAnswer(inv -> {
+            Object fn = inv.getArgument(0);
+            if (fn instanceof java.util.function.BiFunction<?, ?, ?> bi) {
+                @SuppressWarnings("unchecked")
+                java.util.function.BiFunction<ExecutionInput, ExecutionInput.Builder, ExecutionInput> cap =
+                        (java.util.function.BiFunction<ExecutionInput, ExecutionInput.Builder, ExecutionInput>) bi;
+                ExecutionInput initial = ExecutionInput.newExecutionInput().query("{__typename}").build();
+                ExecutionInput.Builder builder = ExecutionInput.newExecutionInput().query("{__typename}");
+                ExecutionInput outEi = cap.apply(initial, builder);
+                GraphQLContext ctx = outEi.getGraphQLContext();
+                // The interceptor should put the HttpServletRequest into the context
+                assertNotNull(ctx.get("httpServletRequest"));
+            }
+            return null;
+        }).when(request).configureExecutionInput(any());
 
         WebGraphQlResponse result = interceptor.intercept(request, chain).block();
 
         assertNotNull(result);
         verify(chain, times(1)).next(request);
-    verify(request, times(1)).configureExecutionInput(any());
+        verify(request, times(1)).configureExecutionInput(any());
     }
 }

@@ -14,6 +14,32 @@ import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
+	@Test
+	void testFindAllPaginated() {
+		var pageInput = new org.una.progra3.healthy_life.dtos.PageInputDTO();
+		pageInput.setPage(0);
+		pageInput.setSize(2);
+		pageInput.setSortBy("name");
+		pageInput.setSortDirection("ASC");
+		org.springframework.data.domain.Page<User> page = org.springframework.data.domain.Page.empty();
+		Mockito.when(userRepository.findAll(Mockito.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+		var result = userService.findAllPaginated(pageInput);
+		assertNotNull(result);
+	}
+
+	@Test
+	void testCreatePageInfo() {
+		User user = new User();
+		user.setName("Test");
+		org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(List.of(user));
+		var info = userService.createPageInfo(page);
+		assertTrue(info.isHasNextPage() == page.hasNext());
+		assertTrue(info.isHasPreviousPage() == page.hasPrevious());
+		assertEquals(page.getTotalElements(), info.getTotalElements());
+		assertEquals(page.getTotalPages(), info.getTotalPages());
+		assertEquals(page.getNumber(), info.getCurrentPage());
+		assertEquals(page.getSize(), info.getPageSize());
+	}
 	@Mock
 	UserRepository userRepository;
 	@Mock

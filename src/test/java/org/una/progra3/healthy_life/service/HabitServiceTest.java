@@ -16,6 +16,45 @@ import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 public class HabitServiceTest {
+    @Test
+    void testFindAllPaginated() {
+        var pageInput = new org.una.progra3.healthy_life.dtos.PageInputDTO();
+        pageInput.setPage(0);
+        pageInput.setSize(2);
+        pageInput.setSortBy("name");
+        pageInput.setSortDirection("ASC");
+        org.springframework.data.domain.Page<Habit> page = org.springframework.data.domain.Page.empty();
+        Mockito.when(habitRepository.findAll(Mockito.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+        var result = habitService.findAllPaginated(pageInput);
+        assertNotNull(result);
+    }
+
+    @Test
+    void testFindByCategoryPaginated() {
+        var pageInput = new org.una.progra3.healthy_life.dtos.PageInputDTO();
+        pageInput.setPage(0);
+        pageInput.setSize(2);
+        pageInput.setSortBy("name");
+        pageInput.setSortDirection("DESC");
+        org.springframework.data.domain.Page<Habit> page = org.springframework.data.domain.Page.empty();
+        Mockito.when(habitRepository.findByCategory(Mockito.eq(HabitCategory.PHYSICAL), Mockito.any(org.springframework.data.domain.Pageable.class))).thenReturn(page);
+        var result = habitService.findByCategoryPaginated(HabitCategory.PHYSICAL, pageInput);
+        assertNotNull(result);
+    }
+
+    @Test
+    void testCreatePageInfo() {
+        Habit habit = new Habit();
+        habit.setName("Test");
+        org.springframework.data.domain.Page<Habit> page = new org.springframework.data.domain.PageImpl<>(List.of(habit));
+        var info = habitService.createPageInfo(page);
+    assertTrue(info.isHasNextPage() == page.hasNext());
+    assertTrue(info.isHasPreviousPage() == page.hasPrevious());
+    assertEquals(page.getTotalElements(), info.getTotalElements());
+    assertEquals(page.getTotalPages(), info.getTotalPages());
+    assertEquals(page.getNumber(), info.getCurrentPage());
+    assertEquals(page.getSize(), info.getPageSize());
+    }
     @Mock
     HabitRepository habitRepository;
 

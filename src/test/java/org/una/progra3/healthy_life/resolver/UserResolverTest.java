@@ -21,6 +21,17 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class UserResolverTest {
+    @Test
+    void testAllUsers_paginated() {
+        org.una.progra3.healthy_life.dtos.PageInputDTO pageInput = new org.una.progra3.healthy_life.dtos.PageInputDTO(0, 2);
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(List.of(new User()));
+        when(userService.findAllPaginated(any())).thenReturn(page);
+        when(userService.createPageInfo(any())).thenReturn(new org.una.progra3.healthy_life.dtos.PageInfoDTO());
+        org.una.progra3.healthy_life.dtos.UserPagedResponseDTO result = userResolver.allUsers(pageInput);
+        assertNotNull(result);
+        assertNotNull(result.getContent());
+        verify(userService).findAllPaginated(any());
+    }
     @Mock UserService userService;
     @Mock AuthenticationService authenticationService;
     @Mock HabitService habitService;
