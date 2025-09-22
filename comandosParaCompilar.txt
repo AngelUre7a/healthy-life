@@ -13,9 +13,7 @@ imagen:docker pull mariadb:11.0
 container:docker run -d --name mariadb -e MYSQL_ROOT_PASSWORD=rootpass -e MYSQL_DATABASE=healthy_life_db -e MYSQL_USER=admin -e MYSQL_PASSWORD=admin -p 3307:3306 mariadb:11.0
 
 Token graphiql
-{
-  "Authorization" :"Bearer (El token)"
-}
+
 
 MUTACION EN POSTMAN
 Método: POST
@@ -32,3 +30,6 @@ CONSULTA EN POSTMAN
 HEADER
 Key = Authorization
 Value = Bearer /TOKEN/
+
+Para hacer las pruebas unitarias
+./mvnw test

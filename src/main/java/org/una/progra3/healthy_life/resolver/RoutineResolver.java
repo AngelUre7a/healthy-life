@@ -94,6 +94,8 @@ public class RoutineResolver {
         Habit habit = habitService.findById(habitId);
         if (habit == null) throw new RuntimeException("Habit not found");
 
+    if (duration == null || duration < 0) throw new RuntimeException("Duration must be non-negative");
+
         return routineActivityService.create(
                 routine,
                 habit,

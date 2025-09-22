@@ -24,15 +24,16 @@ public class RoutineActivityService {
 
     @Transactional
     public RoutineActivity create(Routine routine, Habit habit, Integer duration, LocalTime targetTime, String notes) {
-        if (routine == null) throw new IllegalArgumentException("Routine is required");
-        if (habit == null) throw new IllegalArgumentException("Habit is required");
-        RoutineActivity newRoutineActivity = new RoutineActivity();
-        newRoutineActivity.setRoutine(routine);
-        newRoutineActivity.setHabit(habit);
-        newRoutineActivity.setDuration(duration);
-        newRoutineActivity.setTargetTime(targetTime);
-        newRoutineActivity.setNotes(notes);
-        return routineActivityRepository.save(newRoutineActivity);
+    if (routine == null) throw new IllegalArgumentException("Routine is required");
+    if (habit == null) throw new IllegalArgumentException("Habit is required");
+    if (duration == null || duration < 0) throw new IllegalArgumentException("Duration must be non-negative");
+    RoutineActivity newRoutineActivity = new RoutineActivity();
+    newRoutineActivity.setRoutine(routine);
+    newRoutineActivity.setHabit(habit);
+    newRoutineActivity.setDuration(duration);
+    newRoutineActivity.setTargetTime(targetTime);
+    newRoutineActivity.setNotes(notes);
+    return routineActivityRepository.save(newRoutineActivity);
     }
 
     @Transactional

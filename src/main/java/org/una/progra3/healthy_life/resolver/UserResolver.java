@@ -10,8 +10,6 @@ import org.una.progra3.healthy_life.entity.*;
 import org.una.progra3.healthy_life.service.UserService;
 
 import graphql.schema.DataFetchingEnvironment;
-import jakarta.servlet.http.HttpServletRequest;
-import org.una.progra3.healthy_life.security.jwt.JwtTokenProvider;
 import org.una.progra3.healthy_life.entity.Habit;
 import org.una.progra3.healthy_life.service.HabitService;
 
@@ -27,14 +25,13 @@ public class UserResolver {
 
     @Autowired
     private UserService userService;
-    @Autowired
-    private JwtTokenProvider jwtTokenProvider;
+  
     @Autowired
     private HabitService habitService;
     @Autowired
     private AuthenticationService authenticationService;
 
-    private UserDTO toDTO(User user) {
+    public UserDTO toDTO(User user) {
     if (user == null) return null;
     UserDTO dto = new UserDTO();
     if (user.getId() != null) dto.setId(user.getId());
@@ -76,8 +73,9 @@ public class UserResolver {
 
     @QueryMapping
     public UserDTO currentUser(DataFetchingEnvironment env) {
-        // No JWT or permission validation for currentUser
-        return null;
+        // Retorna el usuario autenticado utilizando el JWT del header Authorization
+        var user = authenticationService.getCurrentUser();
+        return toDTO(user);
     }
 
 

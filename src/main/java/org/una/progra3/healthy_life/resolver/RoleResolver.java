@@ -11,9 +11,6 @@ import org.una.progra3.healthy_life.dtos.CreateRoleInput;
 import org.una.progra3.healthy_life.dtos.UpdateRoleInput;
 import org.una.progra3.healthy_life.service.RoleService;
 
-import org.una.progra3.healthy_life.service.AuthenticationService;
-import org.una.progra3.healthy_life.security.PermissionValidator;
-
 import java.util.List;
 
 @Controller
@@ -22,8 +19,7 @@ public class RoleResolver {
     @Autowired
     private RoleService roleService;
 
-    @Autowired
-    private AuthenticationService authenticationService;
+  
 
     @QueryMapping
     public List<Role> allRoles() {

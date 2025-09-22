@@ -1,5 +1,7 @@
 package org.una.progra3.healthy_life.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.una.progra3.healthy_life.entity.User;
@@ -12,6 +14,8 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @Service
 public class AuthenticationService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
 
     @Autowired
     private UserService userService;
@@ -31,6 +35,9 @@ public class AuthenticationService {
             user.getId(),    // id
             role             // role
         );
+        // Imprimir el token para facilitar pruebas manuales (no recomendado en producción)
+        log.info("JWT Token generado para {}: {}", email, token);
+        System.out.println("JWT Token: " + token);
         return new LoginResponse(token, user.getEmail(), user.getName(), role);
     }
 
